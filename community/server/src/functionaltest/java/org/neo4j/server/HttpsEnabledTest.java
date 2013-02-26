@@ -19,29 +19,33 @@
  */
 package org.neo4j.server;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.neo4j.server.helpers.ServerBuilder.server;
-
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.Test;
+import org.neo4j.server.rest.RESTDocsGenerator;
+import org.neo4j.test.TestData;
+import org.neo4j.test.server.ExclusiveServerTestBase;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
-import org.junit.After;
-import org.junit.Test;
-import org.neo4j.test.server.ExclusiveServerTestBase;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.neo4j.server.helpers.ServerBuilder.server;
 
 public class HttpsEnabledTest extends ExclusiveServerTestBase {
 
     private CommunityNeoServer server;
+
+    public @Rule
+    TestData<RESTDocsGenerator> gen = TestData.producedThrough( RESTDocsGenerator.PRODUCER );
 
     @After
     public void stopTheServer()
@@ -57,11 +61,8 @@ public class HttpsEnabledTest extends ExclusiveServerTestBase {
         assertThat(server.getHttpsEnabled(), is(true));
 
         trustAllSslCerts();
-        
-        Client client = Client.create();
-        ClientResponse r = client.resource(server.httpsUri()).get(ClientResponse.class);
-        
-        assertThat(r.getStatus(), is(200));
+
+        gen.get().expectedStatus(200).get(server.httpsUri().toString());
     }
     
     @Test
